@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMRITA CTF</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
+    <link rel="stylesheet" href="css/bootstrap4-neon-glow.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div class="navbar-dark text-white">
+        <div class="container">
+            <nav class="navbar px-0 py-0 navbar-expand-lg navbar-dark">
+                <a href="/" class="pl-md-0 p-3 text-decoration-none text-light">
+                    <h3 class="bold"><span class="color_danger">Amrita</span><span class="color_white">CTF</span></h3>
+                </a>
+                <div class="navbar-nav ml-auto">
+                    <a href="/" class="p-3 text-decoration-none text-white bold">Home</a>
+                    <a href="/about" class="p-3 text-decoration-none text-white bold">About</a>
+                    <a href="/hackerboard" class="p-3 text-decoration-none text-white bold">Hackerboard</a>
+                    <a href="/quests" class="p-3 text-decoration-none text-white bold">Challenges</a>
+                    <a href="/" class="p-3 text-decoration-none text-white bold">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <div class="jumbotron bg-transparent mb-0 pt-0 radius-0">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12 text-center">
+                    <h1 class="display-1 bold color_white content__title">QUESTS<span class="vim-caret">&nbsp;</span></h1>
+                    <p class="text-grey text-spacey hackerFont lead mb-5">
+                        Its time to show the world what you can do!
+                    </p>
+                </div>
+            </div>
+            <div class="container" align="center" style="color: rgb(244, 43, 43); font-size: 20px;">
+                <div class="row">
+                    <div class="col-md-12 position-relative">
+                        <div id="MyClockDisplay" class="clock-container"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <h4>Challenges</h4>
+            </div>
+            <div class="row" id="challenges-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch challenges from the backend API
+        async function fetchChallenges() {
+            try {
+                const response = await fetch("/getchallenges");
+                const challenges = await response.json();
+                renderChallenges(challenges);
+            } catch (error) {
+                console.error("Error fetching challenges:", error);
+            }
+        }
+
+        // Render challenges as cards
+        function renderChallenges(challenges) {
+            const container = document.getElementById("challenges-container");
+            let challengeHtml = "";
+
+            challenges.forEach((challenge, index) => {
+                challengeHtml += `
+                    <div class="col-md-4 mb-3">
+                        <div class="card category_general">
+                            <div class="card-header solved" data-toggle="collapse" data-target="#problem_id_${index + 1}" aria-expanded="false">
+                                ${challenge.name} <span class="badge">80 points</span>
+                            </div>
+                            <div id="problem_id_${index + 1}" class="collapse">
+                                <div class="card-body">
+                                    <blockquote class="card-blockquote">
+                                        <p>${challenge.description}</p>
+                                        <a target="_blank" href="${challenge.download_link}" class="btn btn-outline-secondary btn-shadow">
+                                            <span class="fa fa-download mr-2"></span>Download
+                                        </a>
+                                        <a href="#hint" data-toggle="modal" data-target="#hint" class="btn btn-outline-secondary btn-shadow">
+                                            <span class="far fa-whitebulb mr-2"></span>Hint: ${challenge.hint}
+                                        </a>
+                                        <div class="input-group mt-3">
+                                            <input type="text" class="form-control" id="flag-input-${challenge.id}" placeholder="Enter Flag">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary" type="button" onclick="verifyFlag(${challenge.id})">Go!</button>
+                                            </div>
+                                        </div>
+                                        <div id="flag-result-${challenge.id}" class="mt-2"></div>
+                                    </blockquote>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            container.innerHTML = challengeHtml;
+        }
+
+        // Verify the flag
+        async function verifyFlag(challengeId) {
+               const flagInput = document.getElementById(`flag-input-${challengeId}`);
+               const flagResult = document.getElementById(`flag-result-${challengeId}`);
+            const flag = flagInput.value.trim();
+
+    if (!flag) {
+        flagResult.innerHTML = `<div class="alert alert-warning">Please enter a flag.</div>`;
+        return;
+    }
+
+    try {
+        const response = await fetch(window.location.origin + "/team/verifyflag",  {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                challenge_id: challengeId,
+                submitted_flag: flag, // Change 'flag' to 'submitted_flag'
+            }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            flagResult.innerHTML = `<div class="alert alert-success">${result.message}</div>`;
+        } else {
+            flagResult.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+        }
+    } catch (error) {
+        console.error("Error verifying flag:", error);
+        flagResult.innerHTML = `<div class="alert alert-danger">An error occurred. Please try again.</div>`;
+    }
+}
+
+        // Fetch and render challenges on page load
+        fetchChallenges();
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

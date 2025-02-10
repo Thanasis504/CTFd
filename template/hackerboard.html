@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Amrita CTF</title>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
+    <link rel="stylesheet" href="css/bootstrap4-neon-glow.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/font-hack/2.020/css/hack.min.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
+</head>
+
+<body class="imgloaded">
+    <div class="navbar-dark text-white">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg navbar-dark">
+                <a href="index.html" class="text-decoration-none text-light">
+                    <h3 class="bold"><span class="color_danger">biOs </span><span class="color_white">CTF</span></h3>
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <div class="navbar-nav ml-auto">
+                        <a href="/" class="p-3 text-light bold">Home</a>
+                        <a href="/about" class="p-3 text-light bold">About</a>
+                        <a href="/hackerboard" class="p-3 text-white bold">Hackerboard</a>
+                        <a href="/login" class="p-3 text-light bold">Login</a>
+                        <a href="/register" class="p-3 text-light bold">Register</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <div class="jumbotron bg-transparent pt-3">
+        <div class="container">
+            <h1 class="display-1 bold text-center"><span class="color_danger">HACKER</span>BOARD</h1>
+            <p class="text-grey lead text-center">Where the world gets ranked!</p>
+
+            <!-- Chart Container -->
+            <div class="row justify-content-center my-5">
+                <div class="col-xl-10">
+                    <canvas id="scoreChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Scoreboard Table -->
+            <div class="row mt-5 justify-content-center">
+                <div class="col-xl-10">
+                    <table class="table table-hover table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Team Name</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scoreTableBody">
+                            {{ range $index, $score := .Scores }}
+                            <tr>
+                                <td>{{ add $index 1 }}</td>
+                                <td>{{ .Name }}</td>
+                                <td>{{ .Score }}</td>
+                            </tr>
+                            {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+    <script>
+        const socket = io("http://localhost:3000");
+        let scoreChart;
+
+        async function fetchScores() {
+            try {
+                const response = await fetch("/hackerboard");
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const scores = await response.json();
+
+                updateTable(scores);
+                updateGraph(scores);
+            } catch (error) {
+                console.error("Error fetching scores:", error);
+            }
+        }
+
+        function updateTable(data) {
+            let tableBody = document.getElementById("scoreTableBody");
+            tableBody.innerHTML = data.map((entry, index) => `
+                <tr>
+                    <th scope="row">${index + 1}</th>
+                    <td>${entry.team_name}</td>
+                    <td>${entry.score}</td>
+                </tr>
+            `).join("");
+        }
+
+        function updateGraph(data) {
+            let labels = data.map(entry => entry.team_name);
+            let scores = data.map(entry => entry.score);
+
+            let ctx = document.getElementById("scoreChart").getContext("2d");
+
+            if (scoreChart) scoreChart.destroy();
+
+            scoreChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Score",
+                        data: scores,
+                        backgroundColor: "rgba(75, 192, 192, 0.6)",
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: "Score" } }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchScores();
+            socket.on("scoreUpdated", fetchScores);
+        });
+    </script>
+</body>
+</html>
