@@ -50,12 +50,12 @@ func (s *Server) setupRoutes() {
 	s.router.SetFuncMap(funcMap)
 
 	// Load templates and static files
-	s.router.LoadHTMLGlob("../../../template/*.html")
-	s.router.Static("/css", "../../../template/css")
-	s.router.Static("/js", "../../../template/js")
-	s.router.Static("/images", "../../../template/images")
-	s.router.Static("/fonts", "../../../template/fonts")
-	s.router.Static("/admin/css","../../../template/css")
+	s.router.LoadHTMLGlob("./template/*.html") 
+	s.router.Static("/css", "./template/css")
+	s.router.Static("/js", "./template/js")
+	s.router.Static("/images", "./template/images")
+	s.router.Static("/fonts", "./template/fonts")
+	s.router.Static("/admin/css", "./template/css")
 
 	// 📌 Public Routes (No Authentication Required)
 	s.router.GET("/", func(ctx *gin.Context) { ctx.HTML(http.StatusOK, "index.html", nil) })
