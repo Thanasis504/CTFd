@@ -1,0 +1,14 @@
+# Exported from Render on 2025-02-11T05:01:51Z
+services:
+- type: web
+  name: CTFd
+  runtime: go
+  repo: https://github.com/Thanasis504/CTFd
+  plan: free
+  envVars:
+  - key: DATABASE_URL
+    sync: false
+  region: oregon
+  buildCommand: cd api/cmd/server && go build -o main .
+  startCommand: ./api/cmd/server/main
+version: "1"
