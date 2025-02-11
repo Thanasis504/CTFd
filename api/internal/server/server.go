@@ -64,7 +64,7 @@ func (s *Server) setupRoutes() {
 	s.router.GET("/instructions", func(c *gin.Context) { c.HTML(http.StatusOK, "instructions.html", nil) })
 	s.router.GET("/quests", func(ctx *gin.Context) { ctx.HTML(http.StatusOK, "quests.html", nil) })
 	s.router.GET("/about", func(c *gin.Context) { c.HTML(http.StatusOK, "about.html", nil) })
-	s.router.GET("/hackerboard", func(ctx *gin.Context) { ctx.HTML(http.StatusOK, "hackerboard.html", nil) })
+	
 
 	// API Endpoints - Public
 	s.router.POST("/register", s.teamhandlers.RegisterTeam)
