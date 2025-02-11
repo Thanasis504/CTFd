@@ -61,7 +61,6 @@ func (s *Server) setupRoutes() {
 	s.router.GET("/", func(ctx *gin.Context) { ctx.HTML(http.StatusOK, "index.html", nil) })
 	s.router.GET("/register", func(c *gin.Context) { c.HTML(http.StatusOK, "register.html", nil) })
 	s.router.GET("/login", func(c *gin.Context) { c.HTML(http.StatusOK, "login.html", nil) })
-	s.router.GET("/hackerboard", func(c *gin.Context) { c.HTML(http.StatusOK, "hackerboard.html", nil) })
 	s.router.GET("/instructions", func(c *gin.Context) { c.HTML(http.StatusOK, "instructions.html", nil) })
 	s.router.GET("/quests", func(ctx *gin.Context) { ctx.HTML(http.StatusOK, "quests.html", nil) })
 	s.router.GET("/about", func(c *gin.Context) { c.HTML(http.StatusOK, "about.html", nil) })
